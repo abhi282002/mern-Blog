@@ -26,6 +26,6 @@ export const signup = async (req, res, next) => {
       message: "SignUp Successful",
     });
   } catch (error) {
-    next(errorHandler(500, "Internal server error"));
+    next(errorHandler(500, error.message));
   }
 };
