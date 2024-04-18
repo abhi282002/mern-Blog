@@ -1,5 +1,5 @@
 import User from "../model/user.model.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
 import jwt from "jsonwebtoken";
 export const signup = async (req, res, next) => {
@@ -55,5 +55,45 @@ export const signIn = async (req, res, next) => {
       .json(rest);
   } catch (error) {
     return next(errorHandler(500, error.message));
+  }
+};
+
+export const google = async (req, res, next) => {
+  const { email, name, googlePhotoUrl } = req.body;
+  try {
+    const user = await User.findOne({ email }).select("-password");
+    console.log(user);
+    if (user) {
+      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+        expiresIn: "1d",
+      });
+      res
+        .status(200)
+        .cookie("access_token", token, { httpOnly: true })
+        .json(user);
+    } else {
+      const generatedPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+      const hashedPassword = bcrypt.hashSync(generatedPassword, 10);
+      const newUser = new User({
+        username:
+          name.toString().split("").join("") + Math.random().toString(9),
+        email,
+        password: hashedPassword,
+        profilePicture: googlePhotoUrl,
+      });
+      await newUser.save();
+      const { password, ...rest } = newUser._doc;
+      const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, {
+        expiresIn: "1d",
+      });
+      res
+        .status(200)
+        .cookie("access_token", token, { httpOnly: true })
+        .json(rest);
+    }
+  } catch (error) {
+    next(errorHandler(error));
   }
 };
