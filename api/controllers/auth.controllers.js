@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
 import jwt from "jsonwebtoken";
 export const signup = async (req, res, next) => {
-  console.log(req.body);
   const { username, email, password } = req.body;
   if (
     !username ||
@@ -62,7 +61,7 @@ export const google = async (req, res, next) => {
   const { email, name, googlePhotoUrl } = req.body;
   try {
     const user = await User.findOne({ email }).select("-password");
-    console.log(user);
+
     if (user) {
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
         expiresIn: "1d",

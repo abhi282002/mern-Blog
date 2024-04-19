@@ -25,12 +25,10 @@ export default function OAuth() {
         }),
       });
       const data = await res.json();
-      console.log(data);
       if (res.ok) {
         dispatch(signInSuccess(data));
         navigate("/");
       }
-      console.log(resultFromGoogle);
     } catch (error) {
       console.log(error);
     }

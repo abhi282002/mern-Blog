@@ -1,16 +1,17 @@
-import { error } from "console";
 import { errorHandler } from "../utils/error.js";
 import bcrypt from "bcryptjs";
+import User from "../model/user.model.js";
 export const updateUser = async (req, res, next) => {
   if (req.user.id != req.params.userId) {
     return next(errorHandler(403, "You are not allowed to update this user"));
   }
+
   if (req.body.password) {
     if (req.body.password.length < 6) {
       return next(errorHandler(400, "Password must be at least 6 character"));
     }
+    req.body.password = bcrypt.hashSync(req.body.password, 10);
   }
-  req.body.password = bcrypt.hashSync(req.body.password, 10);
   if (req.body.username) {
     if (req.body.username.length < 7 || req.body.username.length > 20) {
       return next(
@@ -23,28 +24,33 @@ export const updateUser = async (req, res, next) => {
     if (req.body.username !== req.body.username.toLowerCase()) {
       return next(errorHandler(400, "Username must be in lowercase"));
     }
-    if (req.body.username.match(/^[a-zA-Z0-9]+$/)) {
+    if (!req.body.username.match(/^[a-zA-Z0-9]+$/)) {
       return next(
         errorHandler(400, "Username can only contain letters and numbers")
       );
     }
-    try {
-      const updateUser = await User.findByIdAndUpdate(
-        req.params.userId,
-        {
-          $set: {
-            username: req.body.username,
-            email: req.body.email,
-            profilePicture: req.body.profilePicture,
-            password: req.body.password,
-          },
-        },
-        { new: true }
-      ).select("-password");
-      console.log(updateUser);
-      res.status(200).json(updateUser);
-    } catch (error) {
-      return next(errorHandler(error.message));
+    const username = await User.findOne({ username: req.body.username });
+    if (username) {
+      return next(errorHandler(400, "Username already exist"));
     }
   }
+  try {
+    const updateUser = await User.findByIdAndUpdate(
+      req.params.userId,
+      {
+        $set: {
+          username: req.body.username,
+          email: req.body.email,
+          profilePicture: req.body.profilePicture,
+          password: req.body.password,
+        },
+      },
+      { new: true }
+    ).select("-password");
+    res.status(200).json(updateUser);
+  } catch (error) {
+    return next(errorHandler(error.message));
+  }
 };
+
+export const deleteUser = (req, res, next) => {};
