@@ -15,13 +15,17 @@ import {
   deleteUserFailure,
   deleteUserStart,
   deleteUserSuccess,
+  signOutSuccess,
   updateFailure,
   updateStart,
   updateSuccess,
 } from "../redux/user/userSlice";
+import { Link } from "react-router-dom";
 export default function DashProfile() {
   const [formData, setFormData] = useState({});
-  const { currentUser, dispatchError } = useSelector((state) => state.user);
+  const { currentUser, loading, dispatchError } = useSelector(
+    (state) => state.user
+  );
   const [imageFile, setImageFile] = useState(null);
   const [imageFileUrl, setImageFileUrl] = useState("");
   const filePickerRef = useRef();
@@ -184,9 +188,24 @@ export default function DashProfile() {
           defaultValue={currentUser.username}
           onChange={handleChange}
         />
-        <Button type="submit" gradientDuoTone={"purpleToBlue"}>
+        <Button
+          disabled={loading || imageFileUploadProgress}
+          type="submit"
+          gradientDuoTone={"purpleToBlue"}
+        >
           Update
         </Button>
+        {currentUser.isAdmin && (
+          <Link to="/create-post">
+            <Button
+              type="button"
+              gradientDuoTone="purpleToPink"
+              className="w-full"
+            >
+              Create a post
+            </Button>
+          </Link>
+        )}
       </form>
       <div className="text-red-500 flex justify-between mt-5">
         <span
@@ -197,7 +216,26 @@ export default function DashProfile() {
         >
           Delete Account
         </span>
-        <span className="cursor-pointer">Sign Out</span>
+        <span
+          onClick={async () => {
+            try {
+              const res = await fetch("/api/user/signout", {
+                method: "POST",
+              });
+              const data = await res.json();
+              if (!res.ok) {
+                console.log(data.message);
+              } else {
+                dispatch(signOutSuccess());
+              }
+            } catch (error) {
+              console.log(error);
+            }
+          }}
+          className="cursor-pointer"
+        >
+          Sign Out
+        </span>
       </div>
       {updateUserSuccess && (
         <Alert color={"success"} className="mt-5">
