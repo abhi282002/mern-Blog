@@ -6,4 +6,6 @@ export const topics = [
   { name: "CSS", shortcut: "css" },
   { name: "Java", shortcut: "java" },
   { name: "SprintBoot", shortcut: "springBoot" },
+  { name: "Politics", shortcut: "politics" },
+  { name: "Sports", shortcut: "sports" },
 ];
