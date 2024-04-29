@@ -21,6 +21,7 @@ import {
   updateSuccess,
 } from "../redux/user/userSlice";
 import { Link } from "react-router-dom";
+import Model from "./Modal/Model";
 export default function DashProfile() {
   const [formData, setFormData] = useState({});
   const { currentUser, loading, dispatchError } = useSelector(
@@ -249,55 +250,28 @@ export default function DashProfile() {
       )}
 
       {showModal && (
-        <Modal
-          show={showModal}
-          onClose={() => setShowModal(false)}
-          popup
-          size={"md"}
-        >
-          <Modal.Header />
-          <Modal.Body>
-            <div className="text-center">
-              <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
-              <h3>Are you sure you want to delete your account?</h3>
-              <div className="flex justify-between mt-7 gap-4">
-                <Button
-                  color={"failure"}
-                  onClick={async () => {
-                    setShowModal(false);
-                    try {
-                      dispatch(deleteUserStart());
-                      const res = await fetch(
-                        `/api/user/delete/${currentUser._id}`,
-                        {
-                          method: "DELETE",
-                        }
-                      );
-                      const data = await res.json();
-                      if (!res.ok) {
-                        dispatch(deleteUserFailure(data.message));
-                      } else {
-                        dispatch(deleteUserSuccess(data));
-                      }
-                    } catch (error) {
-                      dispatch(deleteUserFailure(error.message));
-                    }
-                  }}
-                >
-                  Yes, I'm sure
-                </Button>
-                <Button
-                  color={"gray"}
-                  onClick={() => {
-                    setShowModal(false);
-                  }}
-                >
-                  No, cancel
-                </Button>
-              </div>
-            </div>
-          </Modal.Body>
-        </Modal>
+        <Model
+          title={"Are you sure you want to delete your account?"}
+          showModal={showModal}
+          setShowModal={setShowModal}
+          handleClick={() => async () => {
+            setShowModal(false);
+            try {
+              dispatch(deleteUserStart());
+              const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+                method: "DELETE",
+              });
+              const data = await res.json();
+              if (!res.ok) {
+                dispatch(deleteUserFailure(data.message));
+              } else {
+                dispatch(deleteUserSuccess(data));
+              }
+            } catch (error) {
+              dispatch(deleteUserFailure(error.message));
+            }
+          }}
+        />
       )}
     </div>
   );

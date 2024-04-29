@@ -2,11 +2,14 @@ import { Button, Table } from "flowbite-react";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import Model from "./Modal/Model";
 
 export default function DashPosts() {
   const { currentUser } = useSelector((state) => state.user);
   const [userPosts, setUserPosts] = useState([]);
   const [showMore, setShowMore] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [deletedPostId, setDeletedPostId] = useState(null);
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -68,7 +71,13 @@ export default function DashPosts() {
                     </Table.Cell>
                     <Table.Cell>{post.category}</Table.Cell>
                     <Table.Cell>
-                      <span className="font-medium text-red-500 hover:underline cursor-pointer">
+                      <span
+                        onClick={() => {
+                          setShowModal(true);
+                          setDeletedPostId(post._id);
+                        }}
+                        className="font-medium text-red-500 hover:underline cursor-pointer"
+                      >
                         Delete
                       </span>
                     </Table.Cell>
@@ -113,6 +122,33 @@ export default function DashPosts() {
       ) : (
         <p>you not not post yet</p>
       )}
+      <Model
+        title={"Are you sure you want to delete this Post?"}
+        showModal={showModal}
+        setShowModal={setShowModal}
+        handleClick={() => async () => {
+          console.log("click");
+          setShowModal(false);
+          try {
+            const res = await fetch(
+              `/api/post/deletePost/${deletedPostId}/${currentUser._id}`,
+              {
+                method: "DELETE",
+              }
+            );
+            const data = await res.json();
+            if (!res.ok) {
+              console.log(data.message);
+            } else {
+              setUserPosts((prev) =>
+                prev.filter((post) => post._id !== deletedPostId)
+              );
+            }
+          } catch (error) {
+            console.log(error.message);
+          }
+        }}
+      />
     </div>
   );
 }
