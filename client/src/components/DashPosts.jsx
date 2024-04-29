@@ -1,4 +1,4 @@
-import { Table } from "flowbite-react";
+import { Button, Table } from "flowbite-react";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 export default function DashPosts() {
   const { currentUser } = useSelector((state) => state.user);
   const [userPosts, setUserPosts] = useState([]);
+  const [showMore, setShowMore] = useState(true);
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -13,6 +14,9 @@ export default function DashPosts() {
         const data = await res.json();
         if (res.ok) {
           setUserPosts(data.posts);
+          if (data.posts.length < 9) {
+            setShowMore(false);
+          }
         }
       } catch (error) {
         console.log(error.message);
@@ -81,6 +85,30 @@ export default function DashPosts() {
               );
             })}
           </Table>
+          {showMore && (
+            <Button
+              onClick={async () => {
+                const startIndex = userPosts.length;
+                try {
+                  const res = await fetch(
+                    `/api/post/getPosts?userId=${currentUser._id}&startIndex=${startIndex}`
+                  );
+                  const data = await res.json();
+                  if (res.ok) {
+                    setUserPosts((prev) => [...prev, ...data.posts]);
+                  }
+                  if (data.posts.length > 9) {
+                    setShowMore(false);
+                  }
+                } catch (error) {
+                  console.log(error.message);
+                }
+              }}
+              className="w-full text-teal-500 self-center text-sm py-7 "
+            >
+              Show More
+            </Button>
+          )}
         </>
       ) : (
         <p>you not not post yet</p>
